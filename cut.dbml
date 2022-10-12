@@ -1,0 +1,990 @@
+
+Table "djmdProperty" {
+  "DBID" VARCHAR(255) [pk]
+  "DBVersion" VARCHAR(255) [default: NULL]
+  "BaseDBDrive" VARCHAR(255) [default: NULL]
+  "CurrentDBDrive" VARCHAR(255) [default: NULL]
+  "DeviceID" VARCHAR(255) [default: NULL]
+  "Reserved1" TEXT [default: NULL]
+  "Reserved2" TEXT [default: NULL]
+  "Reserved3" TEXT [default: NULL]
+  "Reserved4" TEXT [default: NULL]
+  "Reserved5" TEXT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+}
+
+Table "djmdRecommendLike" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID1" VARCHAR(255) [default: NULL]
+  "ContentID2" VARCHAR(255) [default: NULL]
+  "LikeRate" INTEGER [default: NULL]
+  "DataCreatedH" INTEGER [default: NULL]
+  "DataCreatedL" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  (ContentID1, ContentID2) [name: "djmd_recommend_like__content_i_d1__content_i_d2"]
+  ContentID2 [name: "djmd_recommend_like__content_i_d2"]
+  UUID [name: "djmd_recommend_like__u_u_i_d"]
+  rb_data_status [name: "djmd_recommend_like_rb_data_status"]
+  rb_local_data_status [name: "djmd_recommend_like_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_recommend_like_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_recommend_like_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdRelatedTracks" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL]
+  "ParentID" VARCHAR(255) [default: NULL]
+  "Criteria" TEXT [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ParentID [name: "djmd_related_tracks__parent_i_d"]
+  Seq [name: "djmd_related_tracks__seq"]
+  Name [name: "djmd_related_tracks__name"]
+  UUID [name: "djmd_related_tracks__u_u_i_d"]
+  rb_data_status [name: "djmd_related_tracks_rb_data_status"]
+  rb_local_data_status [name: "djmd_related_tracks_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_related_tracks_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_related_tracks_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSampler" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL]
+  "ParentID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ParentID [name: "djmd_sampler__parent_i_d"]
+  Seq [name: "djmd_sampler__seq"]
+  Name [name: "djmd_sampler__name"]
+  UUID [name: "djmd_sampler__u_u_i_d"]
+  rb_data_status [name: "djmd_sampler_rb_data_status"]
+  rb_local_data_status [name: "djmd_sampler_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_sampler_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_sampler_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongHistory" {
+  "ID" VARCHAR(255) [pk]
+  "HistoryID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  HistoryID [name: "djmd_song_history__history_i_d"]
+  (ContentID, rb_local_deleted) [name: "djmd_song_history__content_i_d_rb_local_deleted"]
+  UUID [name: "djmd_song_history__u_u_i_d"]
+  rb_data_status [name: "djmd_song_history_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_history_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_history_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_history_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongHotCueBanklist" {
+  "ID" VARCHAR(255) [pk]
+  "HotCueBanklistID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "CueID" VARCHAR(255) [default: NULL]
+  "InMsec" INTEGER [default: NULL]
+  "InFrame" INTEGER [default: NULL]
+  "InMpegFrame" INTEGER [default: NULL]
+  "InMpegAbs" INTEGER [default: NULL]
+  "OutMsec" INTEGER [default: NULL]
+  "OutFrame" INTEGER [default: NULL]
+  "OutMpegFrame" INTEGER [default: NULL]
+  "OutMpegAbs" INTEGER [default: NULL]
+  "Color" INTEGER [default: NULL]
+  "ColorTableIndex" INTEGER [default: NULL]
+  "ActiveLoop" INTEGER [default: NULL]
+  "Comment" VARCHAR(255) [default: NULL]
+  "BeatLoopSize" INTEGER [default: NULL]
+  "CueMicrosec" INTEGER [default: NULL]
+  "InPointSeekInfo" VARCHAR(255) [default: NULL]
+  "OutPointSeekInfo" VARCHAR(255) [default: NULL]
+  "HotCueBanklistUUID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  HotCueBanklistID [name: "djmd_song_hot_cue_banklist__hot_cue_banklist_i_d"]
+  ContentID [name: "djmd_song_hot_cue_banklist__content_i_d"]
+  HotCueBanklistUUID [name: "djmd_song_hot_cue_banklist__hot_cue_banklist_u_u_i_d"]
+  UUID [name: "djmd_song_hot_cue_banklist__u_u_i_d"]
+  rb_data_status [name: "djmd_song_hot_cue_banklist_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_hot_cue_banklist_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_hot_cue_banklist_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_hot_cue_banklist_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongMyTag" {
+  "ID" VARCHAR(255) [pk]
+  "MyTagID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  (MyTagID, rb_local_deleted, ID) [name: "djmd_song_my_tag__my_tag_i_d_rb_local_deleted__i_d"]
+  (ContentID, rb_local_deleted) [name: "djmd_song_my_tag__content_i_d_rb_local_deleted"]
+  UUID [name: "djmd_song_my_tag__u_u_i_d"]
+  rb_data_status [name: "djmd_song_my_tag_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_my_tag_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_my_tag_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_my_tag_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongPlaylist" {
+  "ID" VARCHAR(255) [pk]
+  "PlaylistID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  PlaylistID [name: "djmd_song_playlist__playlist_i_d"]
+  (ContentID, rb_local_deleted) [name: "djmd_song_playlist__content_i_d_rb_local_deleted"]
+  UUID [name: "djmd_song_playlist__u_u_i_d"]
+  rb_data_status [name: "djmd_song_playlist_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_playlist_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_playlist_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_playlist_rb_local_usn__i_d"]
+  (PlaylistID, ID) [name: "djmd_song_playlist__playlist_i_d__i_d"]
+}
+}
+
+Table "djmdSongRelatedTracks" {
+  "ID" VARCHAR(255) [pk]
+  "RelatedTracksID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  RelatedTracksID [name: "djmd_song_related_tracks__related_tracks_i_d"]
+  ContentID [name: "djmd_song_related_tracks__content_i_d"]
+  UUID [name: "djmd_song_related_tracks__u_u_i_d"]
+  rb_data_status [name: "djmd_song_related_tracks_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_related_tracks_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_related_tracks_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_related_tracks_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongSampler" {
+  "ID" VARCHAR(255) [pk]
+  "SamplerID" VARCHAR(255) [default: NULL]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  SamplerID [name: "djmd_song_sampler__sampler_i_d"]
+  ContentID [name: "djmd_song_sampler__content_i_d"]
+  UUID [name: "djmd_song_sampler__u_u_i_d"]
+  rb_data_status [name: "djmd_song_sampler_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_sampler_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_sampler_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_sampler_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSongTagList" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "TrackNo" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ContentID [name: "djmd_song_tag_list__content_i_d"]
+  UUID [name: "djmd_song_tag_list__u_u_i_d"]
+  rb_data_status [name: "djmd_song_tag_list_rb_data_status"]
+  rb_local_data_status [name: "djmd_song_tag_list_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_song_tag_list_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_song_tag_list_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdSort" {
+  "ID" VARCHAR(255) [pk]
+  "MenuItemID" VARCHAR(255) [default: NULL]
+  "Seq" INTEGER [default: NULL]
+  "Disable" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_sort__u_u_i_d"]
+  rb_data_status [name: "djmd_sort_rb_data_status"]
+  rb_local_data_status [name: "djmd_sort_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_sort_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_sort_rb_local_usn__i_d"]
+}
+}
+
+Table "hotCueBanklistCue" {
+  "ID" VARCHAR(255) [pk]
+  "HotCueBanklistID" VARCHAR(255) [default: NULL]
+  "Cues" TEXT [default: NULL]
+  "rb_cue_count" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  rb_cue_count [name: "hot_cue_banklist_cue_rb_cue_count"]
+  HotCueBanklistID [name: "hot_cue_banklist_cue__hot_cue_banklist_i_d"]
+  UUID [name: "hot_cue_banklist_cue__u_u_i_d"]
+  rb_data_status [name: "hot_cue_banklist_cue_rb_data_status"]
+  rb_local_data_status [name: "hot_cue_banklist_cue_rb_local_data_status"]
+  rb_local_deleted [name: "hot_cue_banklist_cue_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "hot_cue_banklist_cue_rb_local_usn__i_d"]
+}
+}
+
+Table "imageFile" {
+  "ID" VARCHAR(255) [pk]
+  "TableName" VARCHAR(255) [default: NULL]
+  "TargetUUID" VARCHAR(255) [default: NULL]
+  "TargetID" VARCHAR(255) [default: NULL]
+  "Path" VARCHAR(255) [default: NULL]
+  "Hash" VARCHAR(255) [default: NULL]
+  "Size" INTEGER [default: NULL]
+  "rb_local_path" VARCHAR(255) [default: NULL]
+  "rb_insync_hash" VARCHAR(255) [default: NULL]
+  "rb_insync_local_usn" BIGINT [default: NULL]
+  "rb_file_hash_dirty" INTEGER [default: 0]
+  "rb_local_file_status" INTEGER [default: 0]
+  "rb_in_progress" TINYINT(1) [default: 0]
+  "rb_process_type" INTEGER [default: 0]
+  "rb_temp_path" VARCHAR(255) [default: NULL]
+  "rb_priority" INTEGER [default: 50]
+  "rb_file_size_dirty" INTEGER [default: 0]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  (TableName, TargetUUID) [name: "image_file__table_name__target_u_u_i_d"]
+  (TableName, TargetID) [name: "image_file__table_name__target_i_d"]
+  rb_file_hash_dirty [name: "image_file_rb_file_hash_dirty"]
+  rb_file_size_dirty [name: "image_file_rb_file_size_dirty"]
+  (rb_local_deleted, rb_in_progress, rb_local_file_status, rb_process_type, rb_priority) [name: "image_file_rb_local_deleted_rb_in_progress_rb_local_file_status_rb_process_type_rb_priority"]
+  UUID [name: "image_file__u_u_i_d"]
+  rb_data_status [name: "image_file_rb_data_status"]
+  rb_local_data_status [name: "image_file_rb_local_data_status"]
+  rb_local_deleted [name: "image_file_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "image_file_rb_local_usn__i_d"]
+  (TableName, TargetUUID, ID) [name: "image_file__table_name__target_u_u_i_d__i_d"]
+}
+}
+
+Table "settingFile" {
+  "ID" VARCHAR(255) [pk]
+  "Path" VARCHAR(255) [default: NULL]
+  "Hash" VARCHAR(255) [default: NULL]
+  "Size" INTEGER [default: NULL]
+  "rb_local_path" VARCHAR(255) [default: NULL]
+  "rb_insync_hash" VARCHAR(255) [default: NULL]
+  "rb_insync_local_usn" BIGINT [default: NULL]
+  "rb_file_hash_dirty" INTEGER [default: 0]
+  "rb_file_size_dirty" INTEGER [default: 0]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  rb_file_hash_dirty [name: "setting_file_rb_file_hash_dirty"]
+  rb_file_size_dirty [name: "setting_file_rb_file_size_dirty"]
+  UUID [name: "setting_file__u_u_i_d"]
+  rb_data_status [name: "setting_file_rb_data_status"]
+  rb_local_data_status [name: "setting_file_rb_local_data_status"]
+  rb_local_deleted [name: "setting_file_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "setting_file_rb_local_usn__i_d"]
+}
+}
+
+Table "uuidIDMap" {
+  "ID" VARCHAR(255) [pk]
+  "TableName" VARCHAR(255) [default: NULL]
+  "TargetUUID" VARCHAR(255) [default: NULL]
+  "CurrentID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "uuid_i_d_map__u_u_i_d"]
+  rb_data_status [name: "uuid_i_d_map_rb_data_status"]
+  rb_local_data_status [name: "uuid_i_d_map_rb_local_data_status"]
+  rb_local_deleted [name: "uuid_i_d_map_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "uuid_i_d_map_rb_local_usn__i_d"]
+}
+}
+
+Table "agentRegistry" {
+  "registry_id" VARCHAR(255) [pk]
+  "id_1" VARCHAR(255) [default: NULL]
+  "id_2" VARCHAR(255) [default: NULL]
+  "int_1" BIGINT [default: NULL]
+  "int_2" BIGINT [default: NULL]
+  "str_1" VARCHAR(255) [default: NULL]
+  "str_2" VARCHAR(255) [default: NULL]
+  "date_1" DATETIME [default: NULL]
+  "date_2" DATETIME [default: NULL]
+  "text_1" TEXT [default: NULL]
+  "text_2" TEXT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Indexes {
+    (id_1, id_2) [name: "agent_registry_id_1_id_2"]
+  }
+}
+
+Table "cloudAgentRegistry" {
+  "ID" VARCHAR(255) [pk]
+  "int_1" BIGINT [default: NULL]
+  "int_2" BIGINT [default: NULL]
+  "str_1" VARCHAR(255) [default: NULL]
+  "str_2" VARCHAR(255) [default: NULL]
+  "date_1" DATETIME [default: NULL]
+  "date_2" DATETIME [default: NULL]
+  "text_1" TEXT [default: NULL]
+  "text_2" TEXT [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Indexes {
+    UUID [name: "cloud_agent_registry__u_u_i_d"]
+    rb_data_status [name: "cloud_agent_registry_rb_data_status"]
+    rb_local_data_status [name: "cloud_agent_registry_rb_local_data_status"]
+    rb_local_deleted [name: "cloud_agent_registry_rb_local_deleted"]
+    (rb_local_usn, ID) [name: "cloud_agent_registry_rb_local_usn__i_d"]
+  }
+}
+
+Table "contentActiveCensor" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "ActiveCensors" TEXT [default: NULL]
+  "rb_activecensor_count" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ContentID [name: "content_active_censor__content_i_d"]
+  UUID [name: "content_active_censor__u_u_i_d"]
+  rb_data_status [name: "content_active_censor_rb_data_status"]
+  rb_local_data_status [name: "content_active_censor_rb_local_data_status"]
+  rb_local_deleted [name: "content_active_censor_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "content_active_censor_rb_local_usn__i_d"]
+}
+}
+
+Table "contentCue" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "Cues" TEXT [default: NULL]
+  "rb_cue_count" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  rb_cue_count [name: "content_cue_rb_cue_count"]
+  ContentID [name: "content_cue__content_i_d"]
+  UUID [name: "content_cue__u_u_i_d"]
+  rb_data_status [name: "content_cue_rb_data_status"]
+  rb_local_data_status [name: "content_cue_rb_local_data_status"]
+  rb_local_deleted [name: "content_cue_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "content_cue_rb_local_usn__i_d"]
+}
+}
+
+Table "contentFile" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "Path" VARCHAR(255) [default: NULL]
+  "Hash" VARCHAR(255) [default: NULL]
+  "Size" INTEGER [default: NULL]
+  "rb_local_path" VARCHAR(255) [default: NULL]
+  "rb_insync_hash" VARCHAR(255) [default: NULL]
+  "rb_insync_local_usn" BIGINT [default: NULL]
+  "rb_file_hash_dirty" INTEGER [default: 0]
+  "rb_local_file_status" INTEGER [default: 0]
+  "rb_in_progress" TINYINT(1) [default: 0]
+  "rb_process_type" INTEGER [default: 0]
+  "rb_temp_path" VARCHAR(255) [default: NULL]
+  "rb_priority" INTEGER [default: 50]
+  "rb_file_size_dirty" INTEGER [default: 0]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ContentID [name: "content_file__content_i_d"]
+  rb_file_hash_dirty [name: "content_file_rb_file_hash_dirty"]
+  rb_file_size_dirty [name: "content_file_rb_file_size_dirty"]
+  (rb_local_deleted, rb_in_progress, rb_local_file_status, rb_process_type, rb_priority) [name: "content_file_rb_local_deleted_rb_in_progress_rb_local_file_status_rb_process_type_rb_priority"]
+  UUID [name: "content_file__u_u_i_d"]
+  rb_data_status [name: "content_file_rb_data_status"]
+  rb_local_data_status [name: "content_file_rb_local_data_status"]
+  rb_local_deleted [name: "content_file_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "content_file_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdActiveCensor" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "InMsec" INTEGER [default: NULL]
+  "OutMsec" INTEGER [default: NULL]
+  "Info" INTEGER [default: NULL]
+  "ParameterList" TEXT [default: NULL]
+  "ContentUUID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ContentID [name: "djmd_active_censor__content_i_d"]
+  ContentUUID [name: "djmd_active_censor__content_u_u_i_d"]
+  UUID [name: "djmd_active_censor__u_u_i_d"]
+  rb_data_status [name: "djmd_active_censor_rb_data_status"]
+  rb_local_data_status [name: "djmd_active_censor_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_active_censor_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_active_censor_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdAlbum" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+  "AlbumArtistID" VARCHAR(255) [default: NULL]
+  "ImagePath" VARCHAR(255) [default: NULL]
+  "Compilation" INTEGER [default: NULL]
+  "SearchStr" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  Name [name: "djmd_album__name"]
+  AlbumArtistID [name: "djmd_album__album_artist_i_d"]
+  UUID [name: "djmd_album__u_u_i_d"]
+  rb_data_status [name: "djmd_album_rb_data_status"]
+  rb_local_data_status [name: "djmd_album_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_album_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_album_rb_local_usn__i_d"]
+}
+}
+
+
+
+Table "djmdCategory" {
+  "ID" VARCHAR(255) [pk]
+  "MenuItemID" VARCHAR(255) [default: NULL]
+  "Seq" INTEGER [default: NULL]
+  "Disable" INTEGER [default: NULL]
+  "InfoOrder" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_category__u_u_i_d"]
+  rb_data_status [name: "djmd_category_rb_data_status"]
+  rb_local_data_status [name: "djmd_category_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_category_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_category_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdCloudProperty" {
+  "ID" VARCHAR(255) [pk]
+  "Reserved1" TEXT [default: NULL]
+  "Reserved2" TEXT [default: NULL]
+  "Reserved3" TEXT [default: NULL]
+  "Reserved4" TEXT [default: NULL]
+  "Reserved5" TEXT [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_cloud_property__u_u_i_d"]
+  rb_data_status [name: "djmd_cloud_property_rb_data_status"]
+  rb_local_data_status [name: "djmd_cloud_property_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_cloud_property_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_cloud_property_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdColor" {
+  "ID" VARCHAR(255) [pk]
+  "ColorCode" INTEGER [default: NULL]
+  "SortKey" INTEGER [default: NULL]
+  "Commnt" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_color__u_u_i_d"]
+  rb_data_status [name: "djmd_color_rb_data_status"]
+  rb_local_data_status [name: "djmd_color_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_color_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_color_rb_local_usn__i_d"]
+}
+}
+
+
+Table "djmdCue" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "InMsec" INTEGER [default: NULL]
+  "InFrame" INTEGER [default: NULL]
+  "InMpegFrame" INTEGER [default: NULL]
+  "InMpegAbs" INTEGER [default: NULL]
+  "OutMsec" INTEGER [default: NULL]
+  "OutFrame" INTEGER [default: NULL]
+  "OutMpegFrame" INTEGER [default: NULL]
+  "OutMpegAbs" INTEGER [default: NULL]
+  "Kind" INTEGER [default: NULL]
+  "Color" INTEGER [default: NULL]
+  "ColorTableIndex" INTEGER [default: NULL]
+  "ActiveLoop" INTEGER [default: NULL]
+  "Comment" VARCHAR(255) [default: NULL]
+  "BeatLoopSize" INTEGER [default: NULL]
+  "CueMicrosec" INTEGER [default: NULL]
+  "InPointSeekInfo" VARCHAR(255) [default: NULL]
+  "OutPointSeekInfo" VARCHAR(255) [default: NULL]
+  "ContentUUID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  (ContentID, rb_local_deleted) [name: "djmd_cue__content_i_d_rb_local_deleted"]
+  ContentUUID [name: "djmd_cue__content_u_u_i_d"]
+  UUID [name: "djmd_cue__u_u_i_d"]
+  rb_data_status [name: "djmd_cue_rb_data_status"]
+  rb_local_data_status [name: "djmd_cue_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_cue_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_cue_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdDevice" {
+  "ID" VARCHAR(255) [pk]
+  "MasterDBID" VARCHAR(255) [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_device__u_u_i_d"]
+  rb_data_status [name: "djmd_device_rb_data_status"]
+  rb_local_data_status [name: "djmd_device_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_device_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_device_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdGenre" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  Name [name: "djmd_genre__name"]
+  UUID [name: "djmd_genre__u_u_i_d"]
+  rb_data_status [name: "djmd_genre_rb_data_status"]
+  rb_local_data_status [name: "djmd_genre_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_genre_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_genre_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdHistory" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL]
+  "ParentID" VARCHAR(255) [default: NULL]
+  "DateCreated" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  Name [name: "djmd_history__name"]
+  ParentID [name: "djmd_history__parent_i_d"]
+  UUID [name: "djmd_history__u_u_i_d"]
+  rb_data_status [name: "djmd_history_rb_data_status"]
+  rb_local_data_status [name: "djmd_history_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_history_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_history_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdHotCueBanklist" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "ImagePath" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL]
+  "ParentID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  Name [name: "djmd_hot_cue_banklist__name"]
+  ParentID [name: "djmd_hot_cue_banklist__parent_i_d"]
+  UUID [name: "djmd_hot_cue_banklist__u_u_i_d"]
+  rb_data_status [name: "djmd_hot_cue_banklist_rb_data_status"]
+  rb_local_data_status [name: "djmd_hot_cue_banklist_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_hot_cue_banklist_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_hot_cue_banklist_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdKey" {
+  "ID" VARCHAR(255) [pk]
+  "ScaleName" VARCHAR(255) [default: NULL]
+  "Seq" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ScaleName [name: "djmd_key__scale_name"]
+  UUID [name: "djmd_key__u_u_i_d"]
+  rb_data_status [name: "djmd_key_rb_data_status"]
+  rb_local_data_status [name: "djmd_key_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_key_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_key_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdLabel" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  Name [name: "djmd_label__name"]
+  UUID [name: "djmd_label__u_u_i_d"]
+  rb_data_status [name: "djmd_label_rb_data_status"]
+  rb_local_data_status [name: "djmd_label_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_label_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_label_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdMenuItems" {
+  "ID" VARCHAR(255) [pk]
+  "Class" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  UUID [name: "djmd_menu_items__u_u_i_d"]
+  rb_data_status [name: "djmd_menu_items_rb_data_status"]
+  rb_local_data_status [name: "djmd_menu_items_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_menu_items_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_menu_items_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdMixerParam" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL]
+  "GainHigh" INTEGER [default: NULL]
+  "GainLow" INTEGER [default: NULL]
+  "PeakHigh" INTEGER [default: NULL]
+  "PeakLow" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  (ContentID, rb_local_deleted) [name: "djmd_mixer_param__content_i_d_rb_local_deleted"]
+  UUID [name: "djmd_mixer_param__u_u_i_d"]
+  rb_data_status [name: "djmd_mixer_param_rb_data_status"]
+  rb_local_data_status [name: "djmd_mixer_param_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_mixer_param_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_mixer_param_rb_local_usn__i_d"]
+}
+}
+
+Table "djmdMyTag" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL]
+  "ParentID" VARCHAR(255) [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+Indexes {
+  ParentID [name: "djmd_my_tag__parent_i_d"]
+  Seq [name: "djmd_my_tag__seq"]
+  UUID [name: "djmd_my_tag__u_u_i_d"]
+  rb_data_status [name: "djmd_my_tag_rb_data_status"]
+  rb_local_data_status [name: "djmd_my_tag_rb_local_data_status"]
+  rb_local_deleted [name: "djmd_my_tag_rb_local_deleted"]
+  (rb_local_usn, ID) [name: "djmd_my_tag_rb_local_usn__i_d"]
+}
+}

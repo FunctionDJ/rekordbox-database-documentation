@@ -1,0 +1,228 @@
+Project rekordbox_master_db {
+  database_type: 'SQLCipher'
+  Note: 'amongoose'
+}
+
+Table "djmdPlaylist" {
+  "ID" VARCHAR(255) [pk, Note: 'series of ~8-9 digits, appear non-incrementing']
+  "Seq" INTEGER [default: NULL, Note: "NULL not seen yet. position of the item amongst it's siblings, starting at 1"]
+  "Name" VARCHAR(255) [default: NULL]
+  "ImagePath" VARCHAR(255) [default: NULL] // TODO unknown, maybe future feature?
+  "Attribute" INTEGER [
+    default: NULL,
+    Note: '''
+      NULL not seen.
+      0: regular playlist
+      1: folder
+    ''' // there are definitely more, like maybe '2' for smart playlists
+  ]
+  "ParentID" VARCHAR(255) [
+    default: NULL,
+    ref: > djmdPlaylist.ID,
+    Note: '''
+      NULL not seen.
+      self-explanatory, but can be the string 'root' if no parent (not NULL despite being null-able)
+    '''
+  ]
+  "SmartList" TEXT [default: NULL] // TODO probably contains the expression of the smart list, is `NULL` for folders and regular playlists
+  "UUID" VARCHAR(255) [
+    default: NULL,
+    Note: '''
+      NULL not seen.
+      unique identifier for at least folders and regular playlists.
+      appears to follow this shape `********-****-****-****-************` with `*` being a valid hexadecimal character (0-9, a-f)
+    '''
+  ]
+  "rb_data_status" INTEGER [default: 0] // TODO values `0` and `2` seen, no idea what they mean
+  "rb_local_data_status" INTEGER [default: 0] // TODO only value 0 seen, maybe cloud sync related?
+  "rb_local_deleted" TINYINT(1) [default: 0] // TODO related to deleted playlists. idk if it keeps all of them.
+  "rb_local_synced" TINYINT(1) [
+    default: 0,
+    Note: '''
+      it appears that `0` means not synced with mobile devices and `1` means synced.
+      new playlists will have `0` until synced. folders probably behave the same.
+    '''
+  ]
+  "usn" BIGINT [default: NULL] // TODO no idea. for me `NULL` everywhere. maybe cloud related? i don't have a subscription.
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Note: "'Playlists' are both playlists and folders containing other playlists"
+
+  Indexes {
+    ParentID [name: "djmd_playlist__parent_i_d"]
+    Seq [name: "djmd_playlist__seq"]
+    Name [name: "djmd_playlist__name"]
+    Attribute [name: "djmd_playlist__attribute"]
+    UUID [name: "djmd_playlist__u_u_i_d"]
+    rb_data_status [name: "djmd_playlist_rb_data_status"]
+    rb_local_data_status [name: "djmd_playlist_rb_local_data_status"]
+    rb_local_deleted [name: "djmd_playlist_rb_local_deleted"]
+    (rb_local_usn, ID) [name: "djmd_playlist_rb_local_usn__i_d"]
+  }
+}
+
+Table "djmdArtist" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+  "SearchStr" VARCHAR(255) [default: NULL, Note: "TODO My guess is that this might be some substitution search string. It's mostly NULL in my DB, but 2 artists have this value the same as the Name column."]
+  "UUID" VARCHAR(255) [default: NULL, Note: "See djmdPlaylist.UUID for format"]
+  "rb_data_status" INTEGER [default: 0, Note: "these columns definitely mean all the same as on djmdPlaylist"]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL, Note: "NULL not seen. some local id, no idea."]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Indexes {
+    Name [name: "djmd_artist__name"]
+    UUID [name: "djmd_artist__u_u_i_d"]
+    rb_data_status [name: "djmd_artist_rb_data_status"]
+    rb_local_data_status [name: "djmd_artist_rb_local_data_status"]
+    rb_local_deleted [name: "djmd_artist_rb_local_deleted"]
+    (rb_local_usn, ID) [name: "djmd_artist_rb_local_usn__i_d"]
+  }
+}
+
+Table "djmdAlbum" {
+  "ID" VARCHAR(255) [pk]
+}
+
+Table "djmdGenre" {
+  "ID" VARCHAR(255) [pk]
+}
+
+Table "djmdLabel" {
+  "ID" VARCHAR(255) [pk]
+}
+
+Table "djmdKey" {
+  "ID" VARCHAR(255) [pk]
+}
+
+Table "djmdColor" {
+  "ID" VARCHAR(255) [pk]
+}
+
+Table "djmdContent" {
+  "ID" VARCHAR(255) [pk, Note: "same format as djmdPlaylist.ID"]
+  "FolderPath" VARCHAR(255) [default: NULL, Note: '''
+    NULL not seen.
+    most of the time this is the regular windows file path as we know it with forward slashes and no "protocol" prefix like in the XML.
+    this path *can* be **relative to the local dropbox folder** where it will start with a leading forward slash. further investigation needed 😎
+
+    this value can also be the platform and identifier of cloud tracks like for soundcloud: `soundcloud:tracks:123456789`
+  ''']
+  "FileNameL" VARCHAR(255) [default: NULL, Note: '''
+    `NULL` for cloud tracks. for regular files, this appears to be simply the file name. this might be used for the tag information panel or for "auto relocate".
+    also i believe this value and `FolderPath` can be out of sync when the file was renamed or moved and relocated, but i can't verify without coding a test.
+  ''']
+  "FileNameS" VARCHAR(255) [default: NULL, Note: '''
+    usually `NULL` or empty string, maybe the difference is just the rekordbox version where they cleaned something up.
+    TODO no idea what this is for.
+  ''']
+  "Title" VARCHAR(255) [default: NULL]
+  "ArtistID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID]
+  "AlbumID" VARCHAR(255) [default: NULL, ref: < djmdAlbum.ID]
+  "GenreID" VARCHAR(255) [default: NULL, ref: < djmdGenre.ID]
+  "BPM" INTEGER [default: NULL, Note: '''
+   `BPM * 100` for the two decimal places, i.e. value `15050` means `150.50` BPM.
+   can be `0`, probably when BPM undetectable.
+  ''']
+  "Length" INTEGER [default: NULL, Note: "Length in seconds"]
+  "TrackNo" INTEGER [default: NULL, Note: "NULL not seen. so i'm pretty sure this defaults to `0` for tracks that don't have a track number in their ID3 tags."]
+  "BitRate" INTEGER [default: NULL, Note: "NULL not seen. bitrate as an integer, e.g. `320`, can be `0`, maybe for VBR."]
+  "BitDepth" INTEGER [default: NULL, Note: "NULL not seen. bit-depth as an integer, e.g. `16` or `24`"]
+  "Commnt" TEXT [default: NULL, Note: "Can be empty or NULL as well"]
+  "FileType" INTEGER [default: NULL, Note: "`0`: MP3, `4`: m4a, `11`: wav, `19`: soundcloud, TODO there are definitely a lot more :)"]
+  "Rating" INTEGER [default: NULL, Note: "NULL not seen. defaults to 0."]
+  "ReleaseYear" INTEGER [default: NULL, Note: "NULL not seen. defaults to `0`, otherwise full year integer (`2022`)"]
+  "RemixerID" VARCHAR(255) [default: NULL, Note: "probably points to the artist table, but is most often `NULL`"]
+  "LabelID" VARCHAR(255) [default: NULL, ref: < djmdLabel.ID]
+  "OrgArtistID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID, Note: "most often NULL"]
+  "KeyID" VARCHAR(255) [default: NULL, ref: < djmdKey.ID]
+  "StockDate" VARCHAR(255) [default: NULL, Note: "NULL not seen. Format is 'YYYY-MM-DD'. TODO No idea what this is for."]
+  "ColorID" VARCHAR(255) [default: NULL, ref: < djmdColor.ID]
+  "DJPlayCount" INTEGER [default: NULL, Note: "NULL not seen. Default value is 0 (naturally). My most played track is literally Culture Shock - Bunker."]
+  "ImagePath" VARCHAR(255) [default: NULL, Note: "Can also be NULL or empty string. Contains paths that are relative to [db.location]/share/, starting with a slash."]
+  "MasterDBID" VARCHAR(255) [default: NULL, Note: "NULL not seen. TODO"]
+  "MasterSongID" VARCHAR(255) [default: NULL, Note: "NULL not seen. TODO"]
+  "AnalysisDataPath" VARCHAR(255) [default: NULL, Note: "NULL not seen. contains path relative to [db location]/share/ starting with slash"]
+  "SearchStr" VARCHAR(255) [default: NULL, Note: "TODO"]
+  "FileSize" INTEGER [default: NULL, Note: "NULL not seen, but number 0 seen for SoundCloud tracks. Contains the file size, probably in bits"]
+  "DiscNo" INTEGER [default: NULL, Note: "NULL not seen. Defaults to number 0 if no ID3 tag."]
+  "ComposerID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID]
+  "Subtitle" VARCHAR(255) [default: NULL, Note: "Can also be NULL or empty string. Maybe this is the 'Remix' field in Rekordbox where it just tries to find something in parenthesis in the title, like '(Pendulum Remix)'?"]
+  "SampleRate" INTEGER [default: NULL]
+  "DisableQuantize" INTEGER [default: NULL, Note: "Seen values: NULL, 0. 0 probably means explicitly enable quantize, while 1 means disable quantize. No idea where this can be set in Rekordbox. I think it's forced 0 for SoundCloud tracks."]
+  "Analysed" INTEGER [default: NULL, Note: "TODO NULL not seen. Values seen: 105, 121, 233, 249. Maybe this is the version of their analysation alrogithm or something?"]
+  "ReleaseDate" VARCHAR(255) [default: NULL, Note: "Can be NULL (for SoundCloud tracks), empty string, or a date or timestamp in various formats."]
+  "DateCreated" VARCHAR(255) [default: NULL, Note: "NULL for cloud tracks, otherwise YYYY-MM-DD"]
+  "ContentLink" INTEGER [default: NULL, Note: "TODO all my tracks have the same value '787982', except for one song that has a relative file path (stored in Dropbox) with '4982286', so maybe it's some kind of storage type identifier."]
+  "Tag" VARCHAR(255) [default: NULL, Note: "TODO all NULL for me"]
+  "ModifiedByRBM" VARCHAR(255) [default: NULL, Note: "TODO all empty string or NULL for me"]
+  "HotCueAutoLoad" VARCHAR(255) [default: NULL, Note: "NULL not seen. Can be 'on' or 'off', sometimes uppercase, sometimes lowercase."]
+  "DeliveryControl" VARCHAR(255) [default: NULL, Note: "TODO sometimes NULL, sometimes empty string"]
+  "DeliveryComment" VARCHAR(255) [default: NULL, Note: "TODO sometimes NULL, sometimes empty string. For me always identical value with DeliveryControl column."]
+  "CueUpdated" VARCHAR(255) [default: NULL, Note: "TODO can be NULL or integers starting at 0 (as strings). Highest i've seen is 47, but no idea what these mean."]
+  "AnalysisUpdated" VARCHAR(255) [default: NULL, Note: "TODO NULL not seen. Can be integers starting at 1 (as strings). If this is actually the analysis algorithm version, then it rules the 'Analysed' column out because these don't seem to be linked with each other."]
+  "TrackInfoUpdated" VARCHAR(255) [default: NULL, Note: "TODO NULL not seen. Integers between 1 and 37 seen."]
+  "Lyricist" VARCHAR(255) [default: NULL, Note: "Seems to properly represent the Lyricist tag, with NULL when tag missing"]
+  "ISRC" VARCHAR(255) [default: NULL, Note: "Seems to properly represent the ISRC tag, with NULL when tag missing"]
+  "SamplerTrackInfo" INTEGER [default: NULL, Note: "TODO all 0 for me"]
+  "SamplerPlayOffset" INTEGER [default: NULL, Note: "TODO all 0 for me"]
+  "SamplerGain" FLOAT [default: NULL, Note: "TODO All 0.0 for me"]
+  "VideoAssociate" VARCHAR(255) [default: NULL]
+  "LyricStatus" INTEGER [default: NULL]
+  "ServiceID" INTEGER [default: NULL]
+  "OrgFolderPath" VARCHAR(255) [default: NULL]
+  "Reserved1" TEXT [default: NULL]
+  "Reserved2" TEXT [default: NULL]
+  "Reserved3" TEXT [default: NULL]
+  "Reserved4" TEXT [default: NULL]
+  "ExtInfo" TEXT [default: NULL]
+  "rb_file_id" VARCHAR(255) [default: NULL]
+  "DeviceID" VARCHAR(255) [default: NULL]
+  "rb_LocalFolderPath" VARCHAR(255) [default: NULL]
+  "SrcID" VARCHAR(255) [default: NULL]
+  "SrcTitle" VARCHAR(255) [default: NULL]
+  "SrcArtistName" VARCHAR(255) [default: NULL]
+  "SrcAlbumName" VARCHAR(255) [default: NULL]
+  "SrcLength" INTEGER [default: NULL]
+  "UUID" VARCHAR(255) [default: NULL]
+  "rb_data_status" INTEGER [default: 0]
+  "rb_local_data_status" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0]
+  "rb_local_synced" TINYINT(1) [default: 0]
+  "usn" BIGINT [default: NULL]
+  "rb_local_usn" BIGINT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Note: "these are music tracks in the collection"
+
+  Indexes {
+    (MasterDBID, MasterSongID) [name: "djmd_content__master_d_b_i_d__master_song_i_d"]
+    GenreID [name: "djmd_content__genre_i_d"]
+    LabelID [name: "djmd_content__label_i_d"]
+    ArtistID [name: "djmd_content__artist_i_d"]
+    RemixerID [name: "djmd_content__remixer_i_d"]
+    OrgArtistID [name: "djmd_content__org_artist_i_d"]
+    ComposerID [name: "djmd_content__composer_i_d"]
+    AlbumID [name: "djmd_content__album_i_d"]
+    KeyID [name: "djmd_content__key_i_d"]
+    (rb_local_deleted, ServiceID) [name: "djmd_content_rb_local_deleted__service_i_d"]
+    (rb_local_deleted, FileType) [name: "djmd_content_rb_local_deleted__file_type"]
+    (rb_local_deleted, BitRate) [name: "djmd_content_rb_local_deleted__bit_rate"]
+    (rb_local_deleted, BitDepth) [name: "djmd_content_rb_local_deleted__bit_depth"]
+    UUID [name: "djmd_content__u_u_i_d"]
+    rb_data_status [name: "djmd_content_rb_data_status"]
+    rb_local_data_status [name: "djmd_content_rb_local_data_status"]
+    rb_local_deleted [name: "djmd_content_rb_local_deleted"]
+    (rb_local_usn, ID) [name: "djmd_content_rb_local_usn__i_d"]
+  }
+}
+
