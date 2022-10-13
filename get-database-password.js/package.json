@@ -1,0 +1,10 @@
+{
+	"name": "rbx-db-kit",
+	"main": "main.js",
+	"type": "module",
+	"devDependencies": {
+		"@journeyapps/sqlcipher": "^5.3.1",
+		"asar": "^3.2.0",
+		"egoroof-blowfish": "^2.2.2"
+	}
+}
