@@ -1,0 +1,6 @@
+rekordbox-database-extractor/
+*.7z.*
+*.exe
+/bundle.js
+*.db*
+/*.txt

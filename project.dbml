@@ -3,50 +3,55 @@ Project rekordbox_master_db {
   Note: 'amongoose'
 }
 
-Table "djmdPlaylist" {
-  "ID" VARCHAR(255) [pk, Note: 'series of ~8-9 digits, appear non-incrementing']
-  "Seq" INTEGER [default: NULL, Note: "NULL not seen yet. position of the item amongst it's siblings, starting at 1"]
-  "Name" VARCHAR(255) [default: NULL]
-  "ImagePath" VARCHAR(255) [default: NULL] // TODO unknown, maybe future feature?
-  "Attribute" INTEGER [
-    default: NULL,
-    Note: '''
-      NULL not seen.
-      0: regular playlist
-      1: folder
-    ''' // there are definitely more, like maybe '2' for smart playlists
-  ]
-  "ParentID" VARCHAR(255) [
-    default: NULL,
-    ref: > djmdPlaylist.ID,
-    Note: '''
-      NULL not seen.
-      self-explanatory, but can be the string 'root' if no parent (not NULL despite being null-able)
-    '''
-  ]
-  "SmartList" TEXT [default: NULL] // TODO probably contains the expression of the smart list, is `NULL` for folders and regular playlists
-  "UUID" VARCHAR(255) [
-    default: NULL,
-    Note: '''
-      NULL not seen.
-      unique identifier for at least folders and regular playlists.
-      appears to follow this shape `********-****-****-****-************` with `*` being a valid hexadecimal character (0-9, a-f)
-    '''
-  ]
-  "rb_data_status" INTEGER [default: 0] // TODO values `0` and `2` seen, no idea what they mean
-  "rb_local_data_status" INTEGER [default: 0] // TODO only value 0 seen, maybe cloud sync related?
-  "rb_local_deleted" TINYINT(1) [default: 0] // TODO related to deleted playlists. idk if it keeps all of them.
-  "rb_local_synced" TINYINT(1) [
-    default: 0,
-    Note: '''
-      it appears that `0` means not synced with mobile devices and `1` means synced.
-      new playlists will have `0` until synced. folders probably behave the same.
-    '''
-  ]
-  "usn" BIGINT [default: NULL] // TODO no idea. for me `NULL` everywhere. maybe cloud related? i don't have a subscription.
-  "rb_local_usn" BIGINT [default: NULL]
+Table "commonColumnsExplanations (not an actual table)" {
+  Seq INTEGER [Note: "sort order. starts at 1."]
+  TrackNo INTEGER [Note: "position of content in lists, starting at 1. some tables are different, see their column notes."]
+  ParentID VARCHAR(255) [Note: "can be string 'root' for root instead of an id"]
+}
+
+Table "sharedColumns (not an actual table)" {
+  "ID" VARCHAR(255) [Note: '''
+    if the entry is a default entry, this can be a small, auto-increment like integer.
+    otherwise, its a series of ~8-9 digits, appear non-incrementing
+  ''']
+  "UUID" VARCHAR(255) [Note: '''
+    unique identifier. probably unique across all tables when it's in UUID format.
+    this value seems to have 2 possible forms: the UUID format and the ID format.
+    the ID format seems to be used when the row is a type of folder or category that all rekordbox installations come with, like default root tag categories.
+    the ID format means that the value of the UUID column will be the same as the ID column.
+    which format is used can generally be interpreted from the ParentID column when it's value is 'root'.
+    the UUID format appears to follow this shape `********-****-****-****-************` with `*` being a valid hexadecimal character (0-9, a-f).
+  ''']
+  "rb_data_status" INTEGER [default: 0, Note: "TODO 0 seems to mean existing, 2 means deleted i think"]
+  "rb_local_data_status" INTEGER [default: 0, Note: "TODO only value 0 seen, maybe cloud sync related?"]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: '''
+    it seems like rb_data_status = 2 seems to correspond with this column being 1 and 0 vice-versa.
+    this column is explicitly added to a lot of tables because they have an index that (through DBML) requires this column to be explicitly present.
+    this makes sense because without these indexes, rekordbox couldn't use any of the regular indexes because it rarely cares about the deleted items, so it filters on them which disables all other indexes otherwise.
+  ''']
+  "rb_local_synced" TINYINT(1) [default: 0, Note: "it appears that `0` means not synced with mobile devices and `1` means synced."]
+  "usn" BIGINT [default: NULL, Note: "TODO no idea. for me `NULL` everywhere. maybe cloud related? i don't have a subscription."]
+  "rb_local_usn" BIGINT [Note: "some local id, no idea. maybe USN = universal serial number and this tracks like almost everything rekordbox-related??"]
   "created_at" DATETIME [not null]
   "updated_at" DATETIME [not null]
+
+  Indexes {
+    UUID [name: "djmd_tablename__u_u_i_d"]
+    rb_data_status [name: "djmd_tablename_rb_data_status"]
+    rb_local_data_status [name: "djmd_tablename_rb_local_data_status"]
+    rb_local_deleted [name: "djmd_tablename_rb_local_deleted"]
+    (rb_local_usn, ID) [name: "djmd_tablename_rb_local_usn__i_d"]
+  }
+}
+
+Table inheritShared."djmdPlaylist" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER
+  "Name" VARCHAR(255)
+  "ImagePath" VARCHAR(255) [default: NULL] // TODO unknown, maybe future feature?
+  "Attribute" TreeType [Note: "there might be more, like maybe '2' for smart playlists"]
+  "ParentID" VARCHAR(255) [ref: > inheritShared.djmdPlaylist.ID]
+  "SmartList" TEXT [default: NULL] // TODO probably contains the expression of the smart list, is `NULL` for folders and regular playlists
 
   Note: "'Playlists' are both playlists and folders containing other playlists"
 
@@ -55,60 +60,153 @@ Table "djmdPlaylist" {
     Seq [name: "djmd_playlist__seq"]
     Name [name: "djmd_playlist__name"]
     Attribute [name: "djmd_playlist__attribute"]
-    UUID [name: "djmd_playlist__u_u_i_d"]
-    rb_data_status [name: "djmd_playlist_rb_data_status"]
-    rb_local_data_status [name: "djmd_playlist_rb_local_data_status"]
-    rb_local_deleted [name: "djmd_playlist_rb_local_deleted"]
-    (rb_local_usn, ID) [name: "djmd_playlist_rb_local_usn__i_d"]
   }
 }
 
-Table "djmdArtist" {
+Table inheritShared."djmdAlbum" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+  "AlbumArtistID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdArtist.ID]
+  "ImagePath" VARCHAR(255) [default: NULL, Note: "seems unused, always NULL"]
+  "Compilation" INTEGER [default: NULL, Note: "TODO NULL not seen, all 0 for me. Might be read from ID3 tags which can have a compilation field i think."]
+  "SearchStr" VARCHAR(255) [default: NULL, Note: "TODO all null for me."]
+
+  Indexes {
+    Name [name: "djmd_album__name"]
+    AlbumArtistID [name: "djmd_album__album_artist_i_d"]
+  }
+}
+
+Table inheritShared."djmdCloudProperty" {
+  "ID" VARCHAR(255) [pk]
+  "Reserved1" TEXT [default: NULL]
+  "Reserved2" TEXT [default: NULL]
+  "Reserved3" TEXT [default: NULL]
+  "Reserved4" TEXT [default: NULL]
+  "Reserved5" TEXT [default: NULL]
+
+  Note: "since the unique columns are all reserved ones (empty), i have absolutely no clue. easiest table documentation of my life 😎"
+}
+
+Table inheritShared."djmdColor" {
+  "ID" VARCHAR(255) [pk]
+  "ColorCode" INTEGER [default: NULL, Note: "all NULL for me"]
+  "SortKey" INTEGER [Note: "probably same format as 'Seq' column in other tables"]
+  "Commnt" VARCHAR(255) [default: NULL, Note: "name of the color, e.g. 'Pink'"]
+}
+
+Table inheritShared."djmdKey" {
+  "ID" VARCHAR(255) [pk]
+  "ScaleName" VARCHAR(255) [Note: "string representation, e.g. 'F#m' or '1B'"]
+  "Seq" INTEGER
+
+  Indexes {
+    ScaleName [name: "djmd_key__scale_name"]
+  }
+}
+
+Table inheritShared."djmdArtist" {
   "ID" VARCHAR(255) [pk]
   "Name" VARCHAR(255) [default: NULL]
   "SearchStr" VARCHAR(255) [default: NULL, Note: "TODO My guess is that this might be some substitution search string. It's mostly NULL in my DB, but 2 artists have this value the same as the Name column."]
-  "UUID" VARCHAR(255) [default: NULL, Note: "See djmdPlaylist.UUID for format"]
-  "rb_data_status" INTEGER [default: 0, Note: "these columns definitely mean all the same as on djmdPlaylist"]
-  "rb_local_data_status" INTEGER [default: 0]
-  "rb_local_deleted" TINYINT(1) [default: 0]
-  "rb_local_synced" TINYINT(1) [default: 0]
-  "usn" BIGINT [default: NULL]
-  "rb_local_usn" BIGINT [default: NULL, Note: "NULL not seen. some local id, no idea."]
-  "created_at" DATETIME [not null]
-  "updated_at" DATETIME [not null]
 
   Indexes {
     Name [name: "djmd_artist__name"]
-    UUID [name: "djmd_artist__u_u_i_d"]
-    rb_data_status [name: "djmd_artist_rb_data_status"]
-    rb_local_data_status [name: "djmd_artist_rb_local_data_status"]
-    rb_local_deleted [name: "djmd_artist_rb_local_deleted"]
-    (rb_local_usn, ID) [name: "djmd_artist_rb_local_usn__i_d"]
   }
 }
 
-Table "djmdAlbum" {
+Table inheritShared."djmdMenuItems" {
   "ID" VARCHAR(255) [pk]
+  "Class" INTEGER [Note: "TODO negative integer, no idea what it's for. seems unique."]
+  "Name" VARCHAR(255)
+  "UUID" VARCHAR(255) [Note: "the kind that's equal to ID"]
 }
 
-Table "djmdGenre" {
+Table inheritShared."djmdCategory" {
   "ID" VARCHAR(255) [pk]
+  "MenuItemID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdMenuItems.ID]
+  "Seq" INTEGER
+  "Disable" INTEGER [default: NULL, Note: "NULL not seen. either 1 or 0."]
+  "InfoOrder" INTEGER [default: NULL, Note: "NULL not seen."]
+  "UUID" VARCHAR(255) [default: NULL, Note: "TODO NULL not seen. not the same as shared! :O"]
+
+  Note: "UUID column is not the same as shared!"
 }
 
-Table "djmdLabel" {
+Table inheritShared."djmdCue" {
   "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdContent.ID]
+  "InMsec" INTEGER [Note: "position of thing in milliseconds i guess"]
+  "InFrame" INTEGER [Note: "position of thing in audio frames i guess"]
+  "InMpegFrame" INTEGER [default: NULL, Note: "NULL not seen. maybe this is legecy or only for old MPEG formats. only 0 or -1 as values seen."]
+  "InMpegAbs" INTEGER [default: NULL, Note: 'appears to be the exact same values as InMpegFrame']
+  "OutMsec" INTEGER [default: NULL, Note: "TODO no idea. all -1 for me."]
+  "OutFrame" INTEGER [default: NULL, Note: "TODO no idea. all 0 for me."]
+  "OutMpegFrame" INTEGER [default: NULL, Note: "TODO no idea. all 0 for me."]
+  "OutMpegAbs" INTEGER [default: NULL, Note: "TODO no idea. all 0 for me."]
+  "Kind" INTEGER [default: NULL, Note: "TODO [analyse] NULL not seen. probably an ENUM, i see values from 0 to 9. this is one of the interesting columns for sure, maybe 0 is memory and all other numbers are the A-H hot cues."]
+  "Color" INTEGER [default: NULL, Note: "TODO NULL not seen. i only have values -1 and 255. -1 when kind is 0 and 255 otherwise. probably because memory cues (see my guess in Kind column) don't support colors"]
+  "ColorTableIndex" INTEGER [default: NULL, Note: "TODO Can be NULL. if 0, then kind also = 0 (but not necessarily vice-versa), 22 for all other kinds. Maybe Color is just the intensity and this index is the hue?"]
+  "ActiveLoop" INTEGER [default: NULL, Note: "self-explanatory (all 0 for me though because i don't use active loops), but can be NULL, which for me is when ColorTableIndex is also NULL"]
+  "Comment" VARCHAR(255) [default: NULL, Note: "self-explanatory, empty string by default, but can also be NULL (when activeloop is also NULL it seems)"]
+  "BeatLoopSize" INTEGER [default: NULL, Note: "all 0 for me, NULL when ActiveLoop is also NULL"]
+  "CueMicrosec" INTEGER [default: NULL, Note: "all 0 for me, NULL when ActiveLoop is also NULL"]
+  "InPointSeekInfo" VARCHAR(255) [default: NULL, Note: "all NULL for me"]
+  "OutPointSeekInfo" VARCHAR(255) [default: NULL, Note: "all NULL for me"]
+  "ContentUUID" VARCHAR(255) [default: NULL, Note: "TODO [verify] this is probably equal to the referenced content's UUID column, but haven't verified"]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "see sharedColumns, this is only here to make the extra indexes not throw errors"]
+
+  Indexes {
+    (ContentID, rb_local_deleted) [name: "djmd_cue__content_i_d_rb_local_deleted"]
+    ContentUUID [name: "djmd_cue__content_u_u_i_d"]
+  }
 }
 
-Table "djmdKey" {
+Table inheritShared."djmdDevice" {
   "ID" VARCHAR(255) [pk]
+  "MasterDBID" VARCHAR(255) [default: NULL, Note: "TODO no idea..."]
+  "Name" VARCHAR(255) [default: NULL, Note: "I have two entries in this table with values on this like 'XPS' (the laptop i have rekordbox installed on) and 'OnePlus7Pro' which is my phone where i occasionally sync rekordbox to using the app."]
 }
 
-Table "djmdColor" {
+Table inheritShared."djmdGenre" {
   "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255) [default: NULL]
+
+  Indexes {
+    Name [name: "djmd_genre__name"]
+  }
 }
 
-Table "djmdContent" {
-  "ID" VARCHAR(255) [pk, Note: "same format as djmdPlaylist.ID"]
+Table inheritShared."djmdHistory" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER
+  "Name" VARCHAR(255)
+  "Attribute" TreeType
+  "ParentID" VARCHAR(255) [ref: < inheritShared.djmdHistory.ID]
+  "DateCreated" VARCHAR(255) [default: NULL]
+
+  Indexes {
+    Name [name: "djmd_history__name"]
+    ParentID [name: "djmd_history__parent_i_d"]
+  }
+}
+
+Enum TreeType {
+  0 [Note: "entry"]
+  1 [Note: "folder or group or category of entries"]
+}
+
+Table inheritShared."djmdLabel" {
+  "ID" VARCHAR(255) [pk]
+  "Name" VARCHAR(255)
+
+  Indexes {
+    Name [name: "djmd_label__name"]
+  }
+}
+
+Table inheritShared."djmdContent" {
+  "ID" VARCHAR(255) [pk]
   "FolderPath" VARCHAR(255) [default: NULL, Note: '''
     NULL not seen.
     most of the time this is the regular windows file path as we know it with forward slashes and no "protocol" prefix like in the XML.
@@ -125,9 +223,9 @@ Table "djmdContent" {
     TODO no idea what this is for.
   ''']
   "Title" VARCHAR(255) [default: NULL]
-  "ArtistID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID]
-  "AlbumID" VARCHAR(255) [default: NULL, ref: < djmdAlbum.ID]
-  "GenreID" VARCHAR(255) [default: NULL, ref: < djmdGenre.ID]
+  "ArtistID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdArtist.ID]
+  "AlbumID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdAlbum.ID]
+  "GenreID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdGenre.ID]
   "BPM" INTEGER [default: NULL, Note: '''
    `BPM * 100` for the two decimal places, i.e. value `15050` means `150.50` BPM.
    can be `0`, probably when BPM undetectable.
@@ -141,20 +239,20 @@ Table "djmdContent" {
   "Rating" INTEGER [default: NULL, Note: "NULL not seen. defaults to 0."]
   "ReleaseYear" INTEGER [default: NULL, Note: "NULL not seen. defaults to `0`, otherwise full year integer (`2022`)"]
   "RemixerID" VARCHAR(255) [default: NULL, Note: "probably points to the artist table, but is most often `NULL`"]
-  "LabelID" VARCHAR(255) [default: NULL, ref: < djmdLabel.ID]
-  "OrgArtistID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID, Note: "most often NULL"]
-  "KeyID" VARCHAR(255) [default: NULL, ref: < djmdKey.ID]
+  "LabelID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdLabel.ID]
+  "OrgArtistID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdArtist.ID, Note: "most often NULL"]
+  "KeyID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdKey.ID]
   "StockDate" VARCHAR(255) [default: NULL, Note: "NULL not seen. Format is 'YYYY-MM-DD'. TODO No idea what this is for."]
-  "ColorID" VARCHAR(255) [default: NULL, ref: < djmdColor.ID]
+  "ColorID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdColor.ID]
   "DJPlayCount" INTEGER [default: NULL, Note: "NULL not seen. Default value is 0 (naturally). My most played track is literally Culture Shock - Bunker."]
-  "ImagePath" VARCHAR(255) [default: NULL, Note: "Can also be NULL or empty string. Contains paths that are relative to [db.location]/share/, starting with a slash."]
+  "ImagePath" VARCHAR(255) [default: NULL, Note: "Can also be NULL or empty string. Contains paths that are relative to SyncAnalysisDataRootPath, starting with a slash."]
   "MasterDBID" VARCHAR(255) [default: NULL, Note: "NULL not seen. TODO"]
   "MasterSongID" VARCHAR(255) [default: NULL, Note: "NULL not seen. TODO"]
-  "AnalysisDataPath" VARCHAR(255) [default: NULL, Note: "NULL not seen. contains path relative to [db location]/share/ starting with slash"]
+  "AnalysisDataPath" VARCHAR(255) [default: NULL, Note: "NULL not seen. contains path relative to SyncAnalysisDataRootPath starting with slash"]
   "SearchStr" VARCHAR(255) [default: NULL, Note: "TODO"]
   "FileSize" INTEGER [default: NULL, Note: "NULL not seen, but number 0 seen for SoundCloud tracks. Contains the file size, probably in bits"]
   "DiscNo" INTEGER [default: NULL, Note: "NULL not seen. Defaults to number 0 if no ID3 tag."]
-  "ComposerID" VARCHAR(255) [default: NULL, ref: < djmdArtist.ID]
+  "ComposerID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdArtist.ID]
   "Subtitle" VARCHAR(255) [default: NULL, Note: "Can also be NULL or empty string. Maybe this is the 'Remix' field in Rekordbox where it just tries to find something in parenthesis in the title, like '(Pendulum Remix)'?"]
   "SampleRate" INTEGER [default: NULL]
   "DisableQuantize" INTEGER [default: NULL, Note: "Seen values: NULL, 0. 0 probably means explicitly enable quantize, while 1 means disable quantize. No idea where this can be set in Rekordbox. I think it's forced 0 for SoundCloud tracks."]
@@ -175,32 +273,25 @@ Table "djmdContent" {
   "SamplerTrackInfo" INTEGER [default: NULL, Note: "TODO all 0 for me"]
   "SamplerPlayOffset" INTEGER [default: NULL, Note: "TODO all 0 for me"]
   "SamplerGain" FLOAT [default: NULL, Note: "TODO All 0.0 for me"]
-  "VideoAssociate" VARCHAR(255) [default: NULL]
-  "LyricStatus" INTEGER [default: NULL]
-  "ServiceID" INTEGER [default: NULL]
-  "OrgFolderPath" VARCHAR(255) [default: NULL]
-  "Reserved1" TEXT [default: NULL]
-  "Reserved2" TEXT [default: NULL]
-  "Reserved3" TEXT [default: NULL]
-  "Reserved4" TEXT [default: NULL]
-  "ExtInfo" TEXT [default: NULL]
-  "rb_file_id" VARCHAR(255) [default: NULL]
-  "DeviceID" VARCHAR(255) [default: NULL]
-  "rb_LocalFolderPath" VARCHAR(255) [default: NULL]
-  "SrcID" VARCHAR(255) [default: NULL]
-  "SrcTitle" VARCHAR(255) [default: NULL]
-  "SrcArtistName" VARCHAR(255) [default: NULL]
-  "SrcAlbumName" VARCHAR(255) [default: NULL]
-  "SrcLength" INTEGER [default: NULL]
-  "UUID" VARCHAR(255) [default: NULL]
-  "rb_data_status" INTEGER [default: 0]
-  "rb_local_data_status" INTEGER [default: 0]
-  "rb_local_deleted" TINYINT(1) [default: 0]
-  "rb_local_synced" TINYINT(1) [default: 0]
-  "usn" BIGINT [default: NULL]
-  "rb_local_usn" BIGINT [default: NULL]
-  "created_at" DATETIME [not null]
-  "updated_at" DATETIME [not null]
+  "VideoAssociate" VARCHAR(255) [default: NULL, Note: "TODO all 0 for me, except NULL for soundcloud tracks"]
+  "LyricStatus" INTEGER [default: NULL, Note: "TODO all 0 for me"]
+  "ServiceID" INTEGER [default: NULL, Note: "TODO all 0 for me except the value 2 for the single dropbox track i have"]
+  "OrgFolderPath" VARCHAR(255) [default: NULL, Note: "TODO all NULL for me except with a regular windows path for the single dropbox track"]
+  "Reserved1" TEXT [default: NULL, Note: "Most likely unused at the moment"]
+  "Reserved2" TEXT [default: NULL, Note: "Most likely unused at the moment"]
+  "Reserved3" TEXT [default: NULL, Note: "Most likely unused at the moment"]
+  "Reserved4" TEXT [default: NULL, Note: "Most likely unused at the moment"]
+  "ExtInfo" TEXT [default: NULL, Note: "Contains stringified JSON. Almost all my tracks have the string (!) 'null' (valid JSON string) but the two soundcloud tracks have an object like this: '{\"StreamingInfo\":{\"isFree\":true,\"AudioQuality\":\"0\"}}'"]
+  "rb_file_id" VARCHAR(255) [default: NULL, Note: "TODO NULL for my soundcloud tracks, otherwise contain some id"]
+  "DeviceID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdDevice.ID, Note: "NULL not seen"]
+  "rb_LocalFolderPath" VARCHAR(255) [default: NULL, Note: "TODO all NULL for me"]
+  "SrcID" VARCHAR(255) [default: NULL, Note: "NULL for all my regular tracks, but contains the soundcloud track id for the soundcloud tracks"]
+  "SrcTitle" VARCHAR(255) [default: NULL, Note: "Title for cloud tracks, probably some sort of backup for when you overwrite them..?"]
+  "SrcArtistName" VARCHAR(255) [default: NULL, Note: "Artist name for cloud tracks, probably some sort of backup like SrcTitle"]
+  "SrcAlbumName" VARCHAR(255) [default: NULL, Note: "See SrcTitle/SrcArtistName"]
+  "SrcLength" INTEGER [default: NULL, Note: "song length in milliseconds"]
+  "UUID" VARCHAR(255) [default: NULL, Note: "See other djmdPlaylist.UUID for format"]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "see sharedColumns, this is only here to make the extra indexes not throw errors"]
 
   Note: "these are music tracks in the collection"
 
@@ -218,11 +309,518 @@ Table "djmdContent" {
     (rb_local_deleted, FileType) [name: "djmd_content_rb_local_deleted__file_type"]
     (rb_local_deleted, BitRate) [name: "djmd_content_rb_local_deleted__bit_rate"]
     (rb_local_deleted, BitDepth) [name: "djmd_content_rb_local_deleted__bit_depth"]
-    UUID [name: "djmd_content__u_u_i_d"]
-    rb_data_status [name: "djmd_content_rb_data_status"]
-    rb_local_data_status [name: "djmd_content_rb_local_data_status"]
-    rb_local_deleted [name: "djmd_content_rb_local_deleted"]
-    (rb_local_usn, ID) [name: "djmd_content_rb_local_usn__i_d"]
   }
 }
 
+
+Table inheritShared."djmdMixerParam" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "GainHigh" INTEGER [Note: "these values seem to be usually around 16150"]
+  "GainLow" INTEGER [Note: "all over the place, from like 20 to 65534 (maybe max is 65535)?"]
+  "PeakHigh" INTEGER [Note: "almost always 16256, little variance"]
+  "PeakLow" INTEGER [Note: "most often 0, otherwise any value up to 65024 seen"]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "for index. see sharedColumns for more."]
+
+  Indexes {
+    (ContentID, rb_local_deleted) [name: "djmd_mixer_param__content_i_d_rb_local_deleted"]
+  }
+}
+
+Table inheritShared."djmdMyTag" {
+  "ID" VARCHAR(255) [pk, Note: "can low numbers for the default folders / categories that have 'root' as parent."]
+  "Seq" INTEGER
+  "Name" VARCHAR(255)
+  "Attribute" TreeType
+  "ParentID" VARCHAR(255) [ref: < inheritShared.djmdMyTag.ID]
+  "UUID" VARCHAR(255) [Note: "is equal to ID when attribute = 1 (is folder)"]
+
+  Indexes {
+    ParentID [name: "djmd_my_tag__parent_i_d"]
+    Seq [name: "djmd_my_tag__seq"]
+  }
+}
+
+Table inheritShared."djmdRelatedTracks" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER
+  "Name" VARCHAR(255)
+  "Attribute" RelatedTracksAttribute
+  "ParentID" VARCHAR(255) [ref: < inheritShared.djmdRelatedTracks.ID]
+  "Criteria" TEXT [Note: '''
+    Contains JSON with the criteria.
+    Sample:
+
+    {
+      "Ver": 1,
+      "Hist": { "Diff": 3 },
+      "Matc": {},
+      "BPM": {
+        "True": 1,
+        "Type": 1,
+        "Diff": { "Diff": 5, "HaDo": 1 },
+        "Rang": { "Type": 1, "Min": 10000, "Max": 12000 }
+      },
+      "Key": { "Typ1": 1, "Typ2": 2 },
+      "DAdd": { "Days": 30 },
+      "Genr": { "True": 1 },
+      "Comp": {},
+      "Remi": {},
+      "Labe": {},
+      "Colo": {},
+      "Rate": { "Rate": 0 },
+      "MTag": { "Type": 0 },
+      "Arti": { "Titl": 1 },
+      "Comm": { "Type": 1, "Word": [] },
+      "Year": {
+        "Type": 1,
+        "Diff": { "Diff": 0 },
+        "Range": { "Min": 2021, "Max": 2022 }
+      },
+      "Form": { "Form": 16383, "BitR": -1 }
+    }
+
+  ''']
+
+  Indexes {
+    ParentID [name: "djmd_related_tracks__parent_i_d"]
+    Seq [name: "djmd_related_tracks__seq"]
+    Name [name: "djmd_related_tracks__name"]
+  }
+}
+
+Enum RelatedTracksAttribute {
+  10 [Note: "group"]
+  11 [Note: "entry"]
+}
+
+Table inheritShared."djmdSampler" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER
+  "Name" VARCHAR(255)
+  "Attribute" SamplerType [Note: "no idea what these types mean yet"]
+  "ParentID" VARCHAR(255) [ref: < inheritShared.djmdSampler.ID]
+
+  Indexes {
+    ParentID [name: "djmd_sampler__parent_i_d"]
+    Seq [name: "djmd_sampler__seq"]
+    Name [name: "djmd_sampler__name"]
+  }
+}
+
+Enum SamplerType {
+  2
+  3
+  5
+  6
+}
+
+Table inheritShared."djmdSongHistory" {
+  "ID" VARCHAR(255) [pk]
+  "HistoryID" VARCHAR(255) [ref: < inheritShared.djmdHistory.ID]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "Only here for index, see shared columns"]
+
+  Indexes {
+    HistoryID [name: "djmd_song_history__history_i_d"]
+    (ContentID, rb_local_deleted) [name: "djmd_song_history__content_i_d_rb_local_deleted"]
+  }
+}
+
+Table inheritShared."djmdSongPlaylist" {
+  "ID" VARCHAR(255) [pk]
+  "PlaylistID" VARCHAR(255) [ref: < inheritShared.djmdPlaylist.ID]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER
+  "rb_local_deleted" TINYINT(1) [Note: "only here for index, see shared columns"]
+
+  Indexes {
+    PlaylistID [name: "djmd_song_playlist__playlist_i_d"]
+    (ContentID, rb_local_deleted) [name: "djmd_song_playlist__content_i_d_rb_local_deleted"]
+  }
+}
+
+Table inheritShared."djmdSongTagList" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER
+
+  Indexes {
+    ContentID [name: "djmd_song_tag_list__content_i_d"]
+  }
+}
+
+Table inheritShared."djmdSort" {
+  "ID" VARCHAR(255) [pk]
+  "MenuItemID" VARCHAR(255) [ref: < inheritShared.djmdMenuItems.ID]
+  "Seq" INTEGER
+  "Disable" INTEGER [Note: "can be 0, 1 or 2 (no idea what that means)"]
+
+  Note: "the row with ID = 14 has an rb_data_status = 257 and rb_local_deleted = 1, curious 🤔"
+}
+
+Table inheritShared."settingFile" {
+  "ID" VARCHAR(255) [pk, Note: "these IDs are the same as the Path, but with '/' encoded as '%2F'"]
+  "Path" VARCHAR(255) [Note: "contains a relative path from SyncSettingsRootPath to a (...)MYSETTING(...).DAT, starts with a leading slash"]
+  "Hash" VARCHAR(255) [Note: "probably the MD5 of the file as an integrity check"]
+  "Size" INTEGER [Note: "file size in bytes"]
+  "rb_local_path" VARCHAR(255) [Note: "absolutel file path"]
+  "rb_insync_hash" VARCHAR(255) [Note: "another hash that can sometimes be equal to the Hash column"]
+  "rb_insync_local_usn" BIGINT [Note: "all NULL for me"]
+  "rb_file_hash_dirty" INTEGER [Note: "all 0 for me"]
+  "rb_file_size_dirty" INTEGER [Note: "all 0 for me"]
+
+  Indexes {
+    rb_file_hash_dirty [name: "setting_file_rb_file_hash_dirty"]
+    rb_file_size_dirty [name: "setting_file_rb_file_size_dirty"]
+  }
+}
+
+Table "agentRegistry" {
+  "registry_id" RegistryIDs [pk]
+  "id_1" VARCHAR(255) [default: NULL]
+  "id_2" VARCHAR(255) [default: NULL]
+  "int_1" BIGINT [default: NULL]
+  "int_2" BIGINT [default: NULL]
+  "str_1" VARCHAR(255) [default: NULL]
+  "str_2" VARCHAR(255) [default: NULL]
+  "date_1" DATETIME [default: NULL]
+  "date_2" DATETIME [default: NULL]
+  "text_1" TEXT [default: NULL]
+  "text_2" TEXT [default: NULL]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Indexes {
+    (id_1, id_2) [name: "agent_registry_id_1_id_2"]
+  }
+}
+
+Enum RegistryIDs {
+  localUpdateCount [Note: "uses int_1"]
+  SyncAnalysisDataRootPath [Note: "uses str_1"]
+  SyncSettingsRootPath [Note: "uses str_1"]
+  LangPath [Note: "uses str_1"]
+}
+
+Table inheritShared."cloudAgentRegistry" {
+  "ID" CloudRegistryIDs [pk]
+  "int_1" BIGINT [default: NULL]
+  "int_2" BIGINT [default: NULL]
+  "str_1" VARCHAR(255) [default: NULL]
+  "str_2" VARCHAR(255) [default: NULL]
+  "date_1" DATETIME [default: NULL]
+  "date_2" DATETIME [default: NULL]
+  "text_1" TEXT [default: NULL]
+  "text_2" TEXT [default: NULL]
+}
+
+Enum CloudAgentRegistryIDs {
+  djmdSongTagList [Note: '''
+    uses text_1, which for this row contains JSON
+    sample:
+
+    [
+      {
+        "ID": "d980f573-b334-4ff0-9007-b1ac7dbcacf0",
+        "ContentID": "69517035",
+        "TrackNo": 1,
+        "UUID": "57afbb8f-a695-45fa-8f6b-eb2834a0b453",
+        "created_at": "2022-04-20T20:41:33.913+00:00",
+        "updated_at": "2022-04-20T20:55:44.339+00:00"
+      },
+      {
+        "ID": "333d3dd4-11c2-45f0-b98e-7a07a0fe7a86",
+        "ContentID": "127140553",
+        "TrackNo": 2,
+        "UUID": "65fa0053-889b-4a5b-9d08-17d0351126db",
+        "created_at": "2022-04-20T20:43:20.126+00:00",
+        "updated_at": "2022-04-20T20:55:44.340+00:00"
+      },
+      ...
+    ]
+
+  ''']
+}
+
+Table inheritShared."contentFile" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "Path" VARCHAR(255) [Note: "contains path relative to SyncAnalysisDataRootPath, starting with a forward slash"]
+  "Hash" VARCHAR(255) [Note: "probably MD5 of the target file"]
+  "Size" INTEGER [Note: "file size in bytes"]
+  "rb_local_path" VARCHAR(255) [Note: "absolute file path"]
+  "rb_insync_hash" VARCHAR(255) [Note: "mostly NULL, but the few values that exist are equals to Hash for me"]
+  "rb_insync_local_usn" BIGINT [default: NULL]
+  "rb_file_hash_dirty" INTEGER [default: 0]
+  "rb_local_file_status" INTEGER [default: 0]
+  "rb_in_progress" TINYINT(1) [default: 0]
+  "rb_process_type" INTEGER [default: 0]
+  "rb_temp_path" VARCHAR(255) [default: NULL]
+  "rb_priority" INTEGER [default: 50]
+  "rb_file_size_dirty" INTEGER [default: 0]
+  "rb_local_deleted" INTEGER [default: 0, Note: "only here for index, see shared columns"]
+
+  Indexes {
+    ContentID [name: "content_file__content_i_d"]
+    rb_file_hash_dirty [name: "content_file_rb_file_hash_dirty"]
+    rb_file_size_dirty [name: "content_file_rb_file_size_dirty"]
+    (rb_local_deleted, rb_in_progress, rb_local_file_status, rb_process_type, rb_priority) [name: "content_file_rb_local_deleted_rb_in_progress_rb_local_file_status_rb_process_type_rb_priority"]
+  }
+}
+
+Table inheritShared."contentActiveCensor" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "ActiveCensors" TEXT [default: NULL]
+  "rb_activecensor_count" INTEGER [default: NULL]
+
+  Indexes {
+    ContentID [name: "content_active_censor__content_i_d"]
+  }
+
+  Note: "TODO i don't have any data, so i don't have any idea"
+}
+
+Table inheritShared."contentCue" {
+  "ID" VARCHAR(255) [pk, Note: "UUID format, not just large ints! ID column != UUID column, so these rows all have two columns that look like UUIDs"]
+  "ContentID" VARCHAR(255) [ref: < inheritShared.djmdContent.ID]
+  "Cues" TEXT [Note: '''
+    JSON. empty array "[]" by default.
+    sample:
+
+    [
+      {
+        "ID": "1006754406",
+        "ContentID": "199303119",
+        "InMsec": 44667,
+        "InFrame": 6700,
+        "InMpegFrame": 0,
+        "InMpegAbs": 0,
+        "OutMsec": -1,
+        "OutFrame": 0,
+        "OutMpegFrame": 0,
+        "OutMpegAbs": 0,
+        "Kind": 3,
+        "Color": 255,
+        "ColorTableIndex": 21,
+        "ActiveLoop": 0,
+        "BeatLoopSize": 0,
+        "CueMicrosec": 0,
+        "ContentUUID": "5883848d-043e-481a-9242-75d3391b1de9",
+        "UUID": "20e40a1c-76f4-4943-bf82-f32d1d7adf77",
+        "created_at": "2022-09-16T16:53:36.689+00:00",
+        "updated_at": "2022-09-16T16:53:36.709+00:00"
+      },
+      {
+        "ID": "1846058591",
+        "ContentID": "199303119",
+        "InMsec": 44667,
+        "InFrame": 6700,
+        "InMpegFrame": 0,
+        "InMpegAbs": 0,
+        "OutMsec": -1,
+        "OutFrame": 0,
+        "OutMpegFrame": 0,
+        "OutMpegAbs": 0,
+        "Kind": 0,
+        "Color": -1,
+        "ColorTableIndex": 0,
+        "ActiveLoop": 0,
+        "BeatLoopSize": 0,
+        "CueMicrosec": 0,
+        "ContentUUID": "5883848d-043e-481a-9242-75d3391b1de9",
+        "UUID": "4b1284f8-bb6a-4adc-865b-e8e7ece47ff3",
+        "created_at": "2022-09-16T16:53:36.727+00:00",
+        "updated_at": "2022-09-16T16:53:36.741+00:00"
+      }
+    ]
+
+  ''']
+  "rb_cue_count" INTEGER [default: NULL, Note: "all NULL for me"]
+
+  Indexes {
+    rb_cue_count [name: "content_cue_rb_cue_count"]
+    ContentID [name: "content_cue__content_i_d"]
+  }
+}
+
+Table inheritShared."djmdHotCueBanklist" {
+  "ID" VARCHAR(255) [pk]
+  "Seq" INTEGER [default: NULL]
+  "Name" VARCHAR(255) [default: NULL]
+  "ImagePath" VARCHAR(255) [default: NULL]
+  "Attribute" INTEGER [default: NULL, Note: "some sort of type ENUM for sure, probably 0 = folder, 1 = entry again"]
+  "ParentID" VARCHAR(255) [ref: < inheritShared.djmdHotCueBanklist.ID]
+  "UUID" VARCHAR(255) [Note: "only here to make the foreign key of djmdSongHotCueBanklist work, see shared columns for column details"]
+
+  Indexes {
+    Name [name: "djmd_hot_cue_banklist__name"]
+    ParentID [name: "djmd_hot_cue_banklist__parent_i_d"]
+  }
+
+  Note: "TODO no data so no idea"
+}
+
+Table "djmdProperty" {
+  "DBID" VARCHAR(255) [pk]
+  "DBVersion" VARCHAR(255) [default: NULL, Note: "for me '6000', maybe for rekordbox 6.0.0?"]
+  "BaseDBDrive" VARCHAR(255) [default: NULL, Note: "empty string..."]
+  "CurrentDBDrive" VARCHAR(255) [default: NULL, Note: "empty string..."]
+  "DeviceID" VARCHAR(255) [ref: < inheritShared.djmdDevice.ID]
+  "Reserved1" TEXT [default: NULL, Note: "NULL..."]
+  "Reserved2" TEXT [default: NULL, Note: "NULL..."]
+  "Reserved3" TEXT [default: NULL, Note: "NULL..."]
+  "Reserved4" TEXT [default: NULL, Note: "NULL..."]
+  "Reserved5" TEXT [default: NULL, Note: "NULL..."]
+  "created_at" DATETIME [not null]
+  "updated_at" DATETIME [not null]
+
+  Note: "TODO only one single row so no idea"
+}
+
+Table inheritShared."djmdRecommendLike" {
+  "ID" VARCHAR(255) [pk]
+  "ContentID1" VARCHAR(255) [default: NULL]
+  "ContentID2" VARCHAR(255) [default: NULL]
+  "LikeRate" INTEGER [default: NULL]
+  "DataCreatedH" INTEGER [default: NULL]
+  "DataCreatedL" INTEGER [default: NULL]
+
+  Indexes {
+    (ContentID1, ContentID2) [name: "djmd_recommend_like__content_i_d1__content_i_d2"]
+    ContentID2 [name: "djmd_recommend_like__content_i_d2"]
+  }
+
+  Note: "TODO maybe this stores the connections between two tracks when you hit that link symbol when using 2 players in export mode?"
+}
+
+Table inheritShared."djmdSongHotCueBanklist" {
+  "ID" VARCHAR(255) [pk]
+  "HotCueBanklistID" VARCHAR(255) [default: NULL, ref: < inheritShared."djmdHotCueBanklist".ID]
+  "ContentID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER [default: NULL]
+  "CueID" VARCHAR(255) [default: NULL]
+  "InMsec" INTEGER [default: NULL]
+  "InFrame" INTEGER [default: NULL]
+  "InMpegFrame" INTEGER [default: NULL]
+  "InMpegAbs" INTEGER [default: NULL]
+  "OutMsec" INTEGER [default: NULL]
+  "OutFrame" INTEGER [default: NULL]
+  "OutMpegFrame" INTEGER [default: NULL]
+  "OutMpegAbs" INTEGER [default: NULL]
+  "Color" INTEGER [default: NULL]
+  "ColorTableIndex" INTEGER [default: NULL]
+  "ActiveLoop" INTEGER [default: NULL]
+  "Comment" VARCHAR(255) [default: NULL]
+  "BeatLoopSize" INTEGER [default: NULL]
+  "CueMicrosec" INTEGER [default: NULL]
+  "InPointSeekInfo" VARCHAR(255) [default: NULL]
+  "OutPointSeekInfo" VARCHAR(255) [default: NULL]
+  "HotCueBanklistUUID" VARCHAR(255) [default: NULL, ref: < inheritShared."djmdHotCueBanklist".UUID]
+
+  Indexes {
+    HotCueBanklistID [name: "djmd_song_hot_cue_banklist__hot_cue_banklist_i_d"]
+    ContentID [name: "djmd_song_hot_cue_banklist__content_i_d"]
+    HotCueBanklistUUID [name: "djmd_song_hot_cue_banklist__hot_cue_banklist_u_u_i_d"]
+  }
+
+  Note: "TODO no data, no idea"
+}
+
+Table inheritShared."djmdSongMyTag" {
+  "ID" VARCHAR(255) [pk, Note: "UUID format"]
+  "MyTagID" VARCHAR(255) [ref: < inheritShared.djmdMyTag.ID]
+  "ContentID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER [default: NULL, Note: "all NULL for me"]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "see sharedColumns, this is only here to make the extra indexes not throw errors"]
+
+  Indexes {
+    (MyTagID, rb_local_deleted, ID) [name: "djmd_song_my_tag__my_tag_i_d_rb_local_deleted__i_d"]
+    (ContentID, rb_local_deleted) [name: "djmd_song_my_tag__content_i_d_rb_local_deleted"]
+  }
+}
+
+Table inheritShared."djmdSongRelatedTracks" {
+  "ID" VARCHAR(255) [pk]
+  "RelatedTracksID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdRelatedTracks.ID]
+  "ContentID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER [default: NULL]
+
+  Indexes {
+    RelatedTracksID [name: "djmd_song_related_tracks__related_tracks_i_d"]
+    ContentID [name: "djmd_song_related_tracks__content_i_d"]
+  }
+  
+  Note: "TODO no data, no idea"
+}
+
+Table inheritShared."djmdSongSampler" {
+  "ID" VARCHAR(255) [pk]
+  "SamplerID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdSampler.ID]
+  "ContentID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdContent.ID]
+  "TrackNo" INTEGER [default: NULL]
+
+  Indexes {
+    SamplerID [name: "djmd_song_sampler__sampler_i_d"]
+    ContentID [name: "djmd_song_sampler__content_i_d"]
+  }
+
+  Note: "TODO no data, no idea"
+}
+
+Table inheritShared."hotCueBanklistCue" {
+  "ID" VARCHAR(255) [pk]
+  "HotCueBanklistID" VARCHAR(255) [default: NULL, ref: < inheritShared.djmdHotCueBanklist.ID]
+  "Cues" TEXT [default: NULL, Note: "probably JSON like on contentCue?"]
+  "rb_cue_count" INTEGER [default: NULL]
+
+  Indexes {
+    rb_cue_count [name: "hot_cue_banklist_cue_rb_cue_count"]
+    HotCueBanklistID [name: "hot_cue_banklist_cue__hot_cue_banklist_i_d"]
+  }
+
+  Note: "TODO no data, no idea"
+}
+
+Table "imageFile" {
+  "ID" VARCHAR(255) [pk]
+  "TableName" VARCHAR(255) [default: NULL]
+  "TargetUUID" VARCHAR(255) [default: NULL]
+  "TargetID" VARCHAR(255) [default: NULL]
+  "Path" VARCHAR(255) [default: NULL]
+  "Hash" VARCHAR(255) [default: NULL]
+  "Size" INTEGER [default: NULL]
+  "rb_local_path" VARCHAR(255) [default: NULL]
+  "rb_insync_hash" VARCHAR(255) [default: NULL]
+  "rb_insync_local_usn" BIGINT [default: NULL]
+  "rb_file_hash_dirty" INTEGER [default: 0]
+  "rb_local_file_status" INTEGER [default: 0]
+  "rb_in_progress" TINYINT(1) [default: 0]
+  "rb_process_type" INTEGER [default: 0]
+  "rb_temp_path" VARCHAR(255) [default: NULL]
+  "rb_priority" INTEGER [default: 50]
+  "rb_file_size_dirty" INTEGER [default: 0]
+  "rb_local_deleted" TINYINT(1) [default: 0, Note: "see sharedColumns, this is only here to make the extra indexes not throw errors"]
+
+  Indexes {
+    (TableName, TargetUUID) [name: "image_file__table_name__target_u_u_i_d"]
+    (TableName, TargetID) [name: "image_file__table_name__target_i_d"]
+    rb_file_hash_dirty [name: "image_file_rb_file_hash_dirty"]
+    rb_file_size_dirty [name: "image_file_rb_file_size_dirty"]
+    (rb_local_deleted, rb_in_progress, rb_local_file_status, rb_process_type, rb_priority) [name: "image_file_rb_local_deleted_rb_in_progress_rb_local_file_status_rb_process_type_rb_priority"]
+    (TableName, TargetUUID, ID) [name: "image_file__table_name__target_u_u_i_d__i_d"]
+  }
+
+  Note: "TODO no data, no idea"
+}
+
+Table inheritShared."uuidIDMap" {
+  "ID" VARCHAR(255) [pk]
+  "TableName" VARCHAR(255) [default: NULL]
+  "TargetUUID" VARCHAR(255) [default: NULL]
+  "CurrentID" VARCHAR(255) [default: NULL]
+
+  Note: "TODO no data, no idea"
+}

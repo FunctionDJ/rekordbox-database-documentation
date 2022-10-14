@@ -1,0 +1,15 @@
+{
+  "name": "rekordbox-database-documentation",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon parse.js",
+    "kaitai-generate": "kaitai-struct-compiler --target javascript ./rekordbox_anlz.ksy"
+  },
+  "devDependencies": {
+    "@dbml/core": "^2.4.3",
+    "nodemon": "^2.0.20"
+  },
+  "nodemonConfig": {
+    "ext": "js,dbml"
+  }
+}
